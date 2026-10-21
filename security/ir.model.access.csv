@@ -1,0 +1,3 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+access_hr_appraisal_training_line,hr.appraisal.training.line,model_hr_appraisal_training_line,base.group_user,1,1,1,1
+access_hr_appraisal_training_goal_line,hr.appraisal.training.goal.line,model_hr_appraisal_training_goal_line,base.group_user,1,1,1,1

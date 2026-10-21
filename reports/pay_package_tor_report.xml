@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Register the Print Action / Button on Appraisal -->
+    <record id="action_report_pay_package_tor" model="ir.actions.report">
+        <field name="name">Pay Package &amp; TOR</field>
+        <field name="model">hr.appraisal</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">appraisal_payroll_integration.report_pay_package_tor_template</field>
+        <field name="report_file">appraisal_payroll_integration.report_pay_package_tor_template</field>
+        <field name="binding_model_id" ref="hr_appraisal.model_hr_appraisal"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- QWeb Template for PDF Generation -->
+    <template id="report_pay_package_tor_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2 class="text-center bold">New Pay Package &amp; Terms of Reference (TOR)</h2>
+                        <hr/>
+
+                        <div class="row mt32 mb32">
+                            <div class="col-6">
+                                <strong>Employee Name:</strong> <span t-field="doc.employee_id.name"/><br/>
+                                <strong>Current Position:</strong> <span t-field="doc.job_id.name"/><br/>
+                                <strong>Department:</strong> <span t-field="doc.department_id.name"/><br/>
+                                <strong>Appraisal Date:</strong> <span t-field="doc.date_close"/>
+                            </div>
+                            <div class="col-6">
+                                <strong>Proposed Position:</strong> <span t-field="doc.proposed_job_id.name"/><br/>
+                                <strong>Employment Start Date:</strong> <span t-field="doc.employment_start_date"/><br/>
+                                <strong>Assessment Note:</strong> <span t-field="doc.assessment_note"/>
+                            </div>
+                        </div>
+
+                        <h3>Proposed Pay Package Breakdown</h3>
+                        <table class="table table-sm table-bordered mt16">
+                            <thead>
+                                <tr class="bg-light">
+                                    <th>Compensation Element</th>
+                                    <th>Current Package</th>
+                                    <th>Proposed Package</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Basic Salary</td>
+                                    <td><span t-field="doc.basic_salary_kp"/></td>
+                                    <td><span t-field="doc.proposed_basic_salary_kp"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Fuel Allowance</td>
+                                    <td><span t-field="doc.fuel_allowance_kp"/></td>
+                                    <td><span t-field="doc.proposed_fuel_allowance_kp"/></td>
+                                </tr>
+                                <tr>
+                                    <td>House Allowance</td>
+                                    <td><span t-field="doc.house_allowance_kp"/></td>
+                                    <td><span t-field="doc.proposed_house_allowance_kp"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Mobile Allowance</td>
+                                    <td><span t-field="doc.mobile_allowance_kp"/></td>
+                                    <td><span t-field="doc.proposed_mobile_allowance_kp"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Position Allowance</td>
+                                    <td><span t-field="doc.position_allowance_kp"/></td>
+                                    <td><span t-field="doc.proposed_position_allowance_kp"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Taxable Transport Allowance</td>
+                                    <td><span t-field="doc.taxable_transport_allowance_kp"/></td>
+                                    <td><span t-field="doc.proposed_taxable_transport_allowance_kp"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Non-Taxable Transport Allowance</td>
+                                    <td><span t-field="doc.non_taxable_transport_allowance_kp"/></td>
+                                    <td><span t-field="doc.proposed_non_taxable_transport_allowance_kp"/></td>
+                                </tr>
+                                <tr class="table-active">
+                                    <td><strong>Estimated Net Pay</strong></td>
+                                    <td><strong><span t-field="doc.net_salary_kp"/></strong></td>
+                                    <td><strong><span t-field="doc.proposed_net_salary_kp"/></strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h3 class="mt32">Terms of Reference (TOR)</h3>
+                        <ol class="mt16">
+                            <li><strong>Scope of Work:</strong> The employee agrees to perform all duties associated with the proposed position (<span t-field="doc.proposed_job_id.name"/>).</li>
+                            <li><strong>Effective Date:</strong> The newly adjusted pay package shall take effect upon final management approval.</li>
+                            <li><strong>Confidentiality &amp; Compliance:</strong> All salary adjustments and appraisal results remain confidential between the employee and HR management.</li>
+                        </ol>
+
+                        <br/><br/>
+                        <div class="row mt64 text-center">
+                            <div class="col-6">
+                                _______________________<br/>
+                                <strong>Employee Signature</strong>
+                            </div>
+                            <div class="col-6">
+                                _______________________<br/>
+                                <strong>Manager / HR Signature</strong>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
