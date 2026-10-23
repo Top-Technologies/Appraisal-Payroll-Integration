@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- QWeb PDF Report Template: Appraisal Document -->
+    <!-- Excludes web client navigation, sidebars, control panel, and buttons -->
+    <template id="report_appraisal_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <div class="page" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1e293b; font-size: 13px; line-height: 1.5; padding: 5px 0;">
+
+                        <!-- HEADER SECTION -->
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; border-bottom: 2px solid #2563eb; padding-bottom: 15px;">
+                            <tr>
+                                <td style="width: 50%; vertical-align: top;">
+                                    <div t-if="o.company_id.logo">
+                                        <img t-att-src="image_data_uri(o.company_id.logo)" style="max-height: 55px; max-width: 220px;" alt="Company Logo"/>
+                                    </div>
+                                    <div t-else="" style="font-size: 18px; font-weight: bold; color: #1e3a8a;">
+                                        <t t-out="o.company_id.name"/>
+                                    </div>
+                                    <div style="font-size: 11px; color: #64748b; margin-top: 4px;">
+                                        <t t-out="o.company_id.street"/><t t-if="o.company_id.city">, <t t-out="o.company_id.city"/></t>
+                                    </div>
+                                </td>
+                                <td style="width: 50%; text-align: right; vertical-align: top;">
+                                    <div style="font-size: 20px; font-weight: 800; color: #1e3a8a; text-transform: uppercase; letter-spacing: 0.5px;">
+                                        Appraisal Report
+                                    </div>
+                                    <div style="margin-top: 5px;">
+                                        <span style="display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase;"
+                                              t-att-style="'background-color: %s; color: %s;' % (
+                                                  '#dcfce7' if o.state == '3_done' else ('#e0f2fe' if o.state == '2_pending' else '#f1f5f9'),
+                                                  '#15803d' if o.state == '3_done' else ('#0369a1' if o.state == '2_pending' else '#475569')
+                                              )">
+                                            Status: <t t-out="dict(o._fields['state'].selection).get(o.state, o.state)"/>
+                                        </span>
+                                    </div>
+                                    <div style="font-size: 11px; color: #64748b; margin-top: 5px;">
+                                        Appraisal Ref: #<t t-out="o.id"/> | Date: <t t-out="o.date_close" t-options="{'widget': 'date'}"/>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- SECTION 1: EMPLOYEE & APPRAISAL DETAILS -->
+                        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 14px; margin-bottom: 20px;">
+                            <div style="font-size: 14px; font-weight: 700; color: #1e3a8a; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
+                                Employee Performance Information
+                            </div>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                                <tr>
+                                    <td style="width: 18%; padding: 4px 0; color: #64748b; font-weight: 600;">Employee:</td>
+                                    <td style="width: 32%; padding: 4px 0; font-weight: bold; color: #0f172a;">
+                                        <t t-out="o.employee_id.name"/>
+                                    </td>
+                                    <td style="width: 18%; padding: 4px 0; color: #64748b; font-weight: 600;">Department:</td>
+                                    <td style="width: 32%; padding: 4px 0; color: #0f172a;">
+                                        <t t-out="o.department_id.name or 'N/A'"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 18%; padding: 4px 0; color: #64748b; font-weight: 600;">Job Position:</td>
+                                    <td style="width: 32%; padding: 4px 0; color: #0f172a;">
+                                        <t t-out="o.job_id.name or 'N/A'"/>
+                                    </td>
+                                    <td style="width: 18%; padding: 4px 0; color: #64748b; font-weight: 600;">Appraisers:</td>
+                                    <td style="width: 32%; padding: 4px 0; color: #0f172a;">
+                                        <t t-out="', '.join(o.manager_ids.mapped('name')) or 'N/A'"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 18%; padding: 4px 0; color: #64748b; font-weight: 600;">Evaluation Date:</td>
+                                    <td style="width: 32%; padding: 4px 0; color: #0f172a;">
+                                        <t t-out="o.date_close" t-options="{'widget': 'date'}"/>
+                                    </td>
+                                    <td style="width: 18%; padding: 4px 0; color: #64748b; font-weight: 600;">Company:</td>
+                                    <td style="width: 32%; padding: 4px 0; color: #0f172a;">
+                                        <t t-out="o.company_id.name"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- SECTION 2: EVALUATION & FINAL RATING -->
+                        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 14px; margin-bottom: 20px; page-break-inside: avoid;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="vertical-align: middle;">
+                                        <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #166534; letter-spacing: 0.5px;">
+                                            Overall Evaluation Rating
+                                        </div>
+                                        <div style="font-size: 18px; font-weight: 800; color: #14532d; margin-top: 3px;">
+                                            <t t-if="o.assessment_note">
+                                                <t t-out="o.assessment_note.name"/>
+                                            </t>
+                                            <t t-else="">
+                                                <span style="color: #64748b; font-size: 14px; font-style: italic;">Evaluation Pending</span>
+                                            </t>
+                                        </div>
+                                    </td>
+                                    <td style="text-align: right; vertical-align: middle;">
+                                        <div t-if="o.next_appraisal_date" style="font-size: 12px; color: #166534;">
+                                            <strong>Next Scheduled Appraisal:</strong> <t t-out="o.next_appraisal_date" t-options="{'widget': 'date'}"/>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- SECTION 3: PERFORMANCE GOALS -->
+                        <t t-set="goals" t-value="o.env['hr.appraisal.goal'].search([('employee_ids', 'in', o.employee_id.id), ('child_ids', '=', False)]) if 'hr.appraisal.goal' in o.env else []"/>
+                        <div t-if="goals" style="margin-bottom: 20px; page-break-inside: avoid;">
+                            <div style="font-size: 14px; font-weight: 700; color: #1e3a8a; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Performance Goals &amp; Objectives
+                            </div>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 12px; border: 1px solid #cbd5e1;">
+                                <thead>
+                                    <tr style="background-color: #f1f5f9; color: #334155; text-align: left;">
+                                        <th style="padding: 8px 10px; border-bottom: 1px solid #cbd5e1; width: 45%;">Goal</th>
+                                        <th style="padding: 8px 10px; border-bottom: 1px solid #cbd5e1; width: 25%;">Deadline</th>
+                                        <th style="padding: 8px 10px; border-bottom: 1px solid #cbd5e1; width: 30%; text-align: center;">Progression</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="goals" t-as="goal">
+                                        <tr style="border-bottom: 1px solid #e2e8f0;">
+                                            <td style="padding: 7px 10px; vertical-align: top;">
+                                                <div style="font-weight: 600; color: #0f172a;"><t t-out="goal.name"/></div>
+                                                <div t-if="goal.description" style="font-size: 11px; color: #64748b; margin-top: 2px;">
+                                                    <t t-out="goal.description"/>
+                                                </div>
+                                            </td>
+                                            <td style="padding: 7px 10px; vertical-align: top; color: #334155;">
+                                                <t t-if="goal.deadline">
+                                                    <t t-out="goal.deadline" t-options="{'widget': 'date'}"/>
+                                                </t>
+                                                <t t-else="">
+                                                    <span style="color: #94a3b8;">No deadline</span>
+                                                </t>
+                                            </td>
+                                            <td style="padding: 7px 10px; vertical-align: top; text-align: center;">
+                                                <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 11px; background-color: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;">
+                                                    <t t-out="dict(goal._fields['progression'].selection).get(goal.progression, goal.progression)"/>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- SECTION 4: SKILLS ASSESSMENT (IF APPLICABLE) -->
+                        <t t-if="'appraisal_skill_ids' in o and o.appraisal_skill_ids">
+                            <div style="margin-bottom: 20px; page-break-inside: avoid;">
+                                <div style="font-size: 14px; font-weight: 700; color: #1e3a8a; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    Skills &amp; Competencies
+                                </div>
+                                <table style="width: 100%; border-collapse: collapse; font-size: 12px; border: 1px solid #cbd5e1;">
+                                    <thead>
+                                        <tr style="background-color: #f1f5f9; color: #334155; text-align: left;">
+                                            <th style="padding: 8px 10px; border-bottom: 1px solid #cbd5e1; width: 40%;">Skill</th>
+                                            <th style="padding: 8px 10px; border-bottom: 1px solid #cbd5e1; width: 30%;">Category</th>
+                                            <th style="padding: 8px 10px; border-bottom: 1px solid #cbd5e1; width: 30%;">Level</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="o.appraisal_skill_ids" t-as="skill">
+                                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                                <td style="padding: 6px 10px; font-weight: 600; color: #0f172a;">
+                                                    <t t-out="skill.skill_id.name"/>
+                                                </td>
+                                                <td style="padding: 6px 10px; color: #475569;">
+                                                    <t t-out="skill.skill_type_id.name"/>
+                                                </td>
+                                                <td style="padding: 6px 10px; color: #0f172a; font-weight: 500;">
+                                                    <t t-out="skill.skill_level_id.name or 'N/A'"/>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </t>
+
+                        <!-- SECTION 5: APPRAISAL FEEDBACK -->
+                        <div style="margin-bottom: 20px;">
+                            <div style="font-size: 14px; font-weight: 700; color: #1e3a8a; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Evaluation &amp; Assessment Feedback
+                            </div>
+
+                            <!-- Employee Feedback Box -->
+                            <div style="border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 14px; overflow: hidden; page-break-inside: avoid;">
+                                <div style="background-color: #f8fafc; padding: 8px 14px; font-weight: 700; color: #0f172a; border-bottom: 1px solid #e2e8f0; font-size: 13px;">
+                                    Employee's Self-Assessment &amp; Feedback
+                                </div>
+                                <div style="padding: 12px 14px; font-size: 12px; min-height: 50px; background-color: #ffffff;">
+                                    <t t-if="o.accessible_employee_feedback and o.accessible_employee_feedback != 'Unpublished'">
+                                        <t t-out="o.accessible_employee_feedback"/>
+                                    </t>
+                                    <t t-elif="o.employee_feedback">
+                                        <t t-out="o.employee_feedback"/>
+                                    </t>
+                                    <t t-else="">
+                                        <span style="color: #94a3b8; font-style: italic;">No self-assessment feedback recorded.</span>
+                                    </t>
+                                </div>
+                            </div>
+
+                            <!-- Manager Feedback Box -->
+                            <div style="border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 14px; overflow: hidden; page-break-inside: avoid;">
+                                <div style="background-color: #f8fafc; padding: 8px 14px; font-weight: 700; color: #0f172a; border-bottom: 1px solid #e2e8f0; font-size: 13px;">
+                                    Manager's Evaluation &amp; Feedback
+                                </div>
+                                <div style="padding: 12px 14px; font-size: 12px; min-height: 50px; background-color: #ffffff;">
+                                    <t t-if="o.accessible_manager_feedback and o.accessible_manager_feedback != 'Unpublished'">
+                                        <t t-out="o.accessible_manager_feedback"/>
+                                    </t>
+                                    <t t-elif="o.manager_feedback">
+                                        <t t-out="o.manager_feedback"/>
+                                    </t>
+                                    <t t-else="">
+                                        <span style="color: #94a3b8; font-style: italic;">No manager feedback recorded.</span>
+                                    </t>
+                                </div>
+                            </div>
+
+                            <!-- Private / Additional Note Box (if present) -->
+                            <div t-if="o.note" style="border: 1px solid #fed7aa; border-radius: 6px; margin-bottom: 14px; overflow: hidden; page-break-inside: avoid;">
+                                <div style="background-color: #fff7ed; padding: 8px 14px; font-weight: 700; color: #9a3412; border-bottom: 1px solid #fed7aa; font-size: 13px;">
+                                    Additional Management Notes
+                                </div>
+                                <div style="padding: 12px 14px; font-size: 12px; min-height: 40px; background-color: #ffffff;">
+                                    <t t-out="o.note"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECTION 6: SIGNATURES & ACKNOWLEDGEMENT -->
+                        <div style="margin-top: 30px; page-break-inside: avoid; border-top: 1px solid #e2e8f0; padding-top: 15px;">
+                            <div style="font-size: 11px; color: #64748b; margin-bottom: 25px; text-align: justify;">
+                                <em>Acknowledgement: By signing below, the employee and manager confirm that they have completed the performance review meeting and reviewed the appraisal ratings and feedback documented above.</em>
+                            </div>
+                            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                                <tr>
+                                    <td style="width: 45%; vertical-align: top;">
+                                        <div style="border-top: 1px solid #475569; width: 85%; padding-top: 5px;">
+                                            <div style="font-weight: 700; color: #0f172a; font-size: 12px;">Employee Signature</div>
+                                            <div style="font-size: 11px; color: #64748b;"><t t-out="o.employee_id.name"/></div>
+                                            <div style="font-size: 11px; color: #94a3b8; margin-top: 8px;">Date: ________________________</div>
+                                        </div>
+                                    </td>
+                                    <td style="width: 10%;"></td>
+                                    <td style="width: 45%; vertical-align: top;">
+                                        <div style="border-top: 1px solid #475569; width: 85%; padding-top: 5px;">
+                                            <div style="font-weight: 700; color: #0f172a; font-size: 12px;">Appraiser / Manager Signature</div>
+                                            <div style="font-size: 11px; color: #64748b;"><t t-out="', '.join(o.manager_ids.mapped('name'))"/></div>
+                                            <div style="font-size: 11px; color: #94a3b8; margin-top: 8px;">Date: ________________________</div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

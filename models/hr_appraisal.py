@@ -170,6 +170,25 @@ class HrAppraisal(models.Model):
         self.filtered(lambda appraisal: appraisal.state == '3_done')._sync_suggested_training_goals()
         return result
 
+    def _generate_appraisal_pdf_attachment(self):
+        """Render this appraisal as a PDF and attach it to the appraisal."""
+        self.ensure_one()
+        report = self.env.ref('appraisal_payroll_integration.action_report_hr_appraisal')
+        pdf_content, _ = report._render_qweb_pdf(report, res_ids=[self.id])
+        employee_name = (self.employee_id.name or 'Employee').replace(' ', '_')
+        return self.env['ir.attachment'].create({
+            'name': f'Appraisal_{employee_name}_{self.id}.pdf',
+            'type': 'binary',
+            'raw': pdf_content,
+            'res_model': 'hr.appraisal',
+            'res_id': self.id,
+            'mimetype': 'application/pdf',
+        })
+
+    def action_print_appraisal_pdf(self):
+        self.ensure_one()
+        return self.env.ref('appraisal_payroll_integration.action_report_hr_appraisal').report_action(self)
+
     def _sync_suggested_training_goals(self):
         """Create or refresh employee Goals from training suggestions when finalized."""
         goal_model = self.env['hr.appraisal.goal'].sudo()

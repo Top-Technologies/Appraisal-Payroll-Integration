@@ -6,6 +6,10 @@
         <field name="inherit_id" ref="hr_appraisal.view_hr_appraisal_form"/>
         <field name="arch" type="xml">
 
+            <xpath expr="//header" position="inside">
+                <button name="action_print_appraisal_pdf" string="Print PDF" type="object"/>
+            </xpath>
+
             <xpath expr="//div[contains(@class, 'o_appraisal_both_feedback')]" position="before">
                 <group col="2" class="mb-2">
                     <field name="self_overall_performance" string="Average Self Rating (/ 5)" readonly="1"/>
