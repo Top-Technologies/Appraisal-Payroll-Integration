@@ -21,8 +21,8 @@
         <field name="name">Appraisal PDF</field>
         <field name="model">hr.appraisal</field>
         <field name="report_type">qweb-pdf</field>
-        <field name="report_name">appraisal_payroll_integration.report_appraisal_document</field>
-        <field name="report_file">appraisal_payroll_integration.report_appraisal_document</field>
+        <field name="report_name">Appraisal_Payroll_Integration.report_appraisal_document</field>
+        <field name="report_file">Appraisal_Payroll_Integration.report_appraisal_document</field>
         <field name="paperformat_id" ref="paperformat_appraisal_portrait"/>
         <field name="print_report_name">'Appraisal - %s' % (object.employee_id.name or 'Employee')</field>
         <field name="binding_model_id" ref="hr_appraisal.model_hr_appraisal"/>

@@ -5,8 +5,8 @@
         <field name="name">Pay Package &amp; TOR</field>
         <field name="model">hr.appraisal</field>
         <field name="report_type">qweb-pdf</field>
-        <field name="report_name">appraisal_payroll_integration.report_pay_package_tor_template</field>
-        <field name="report_file">appraisal_payroll_integration.report_pay_package_tor_template</field>
+        <field name="report_name">Appraisal_Payroll_Integration.report_pay_package_tor_template</field>
+        <field name="report_file">Appraisal_Payroll_Integration.report_pay_package_tor_template</field>
         <field name="binding_model_id" ref="hr_appraisal.model_hr_appraisal"/>
         <field name="binding_type">report</field>
     </record>
