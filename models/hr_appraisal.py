@@ -91,36 +91,12 @@ class HrAppraisal(models.Model):
         readonly=True
     )
 
-    # --- REQUIREMENT 4: SELF-EVALUATION RATING FIELDS ---
-    self_rating_planning = fields.Float(string="Self: Planning & Execution")
-    self_rating_reporting = fields.Float(string="Self: Reporting & Documentation")
-    self_rating_delivery = fields.Float(string="Self: Timely Delivery")
-    self_rating_problem_solving = fields.Float(string="Self: Problem Solving Skill")
-    self_rating_knowledge = fields.Float(string="Self: Job Knowledge")
-    self_rating_quality = fields.Float(string="Self: Quality of Work")
-    self_rating_attendance = fields.Float(string="Self: Attendance & Punctuality")
-    self_rating_initiative = fields.Float(string="Self: Initiative & Ownership")
-    self_rating_communication = fields.Float(string="Self: Communication & Teamwork")
-    self_rating_dependability = fields.Float(string="Self: Dependability & Accountability")
-
     self_overall_performance = fields.Float(
         string="Self Overall Performance",
         compute="_compute_self_overall_performance",
         store=True,
         readonly=True
     )
-
-    # --- REQUIREMENT 4: MANAGER FEEDBACK RATING FIELDS ---
-    mgr_rating_planning = fields.Float(string="Manager: Planning & Execution")
-    mgr_rating_reporting = fields.Float(string="Manager: Reporting & Documentation")
-    mgr_rating_delivery = fields.Float(string="Manager: Timely Delivery")
-    mgr_rating_problem_solving = fields.Float(string="Manager: Problem Solving Skill")
-    mgr_rating_knowledge = fields.Float(string="Manager: Job Knowledge")
-    mgr_rating_quality = fields.Float(string="Manager: Quality of Work")
-    mgr_rating_attendance = fields.Float(string="Manager: Attendance & Punctuality")
-    mgr_rating_initiative = fields.Float(string="Manager: Initiative & Ownership")
-    mgr_rating_communication = fields.Float(string="Manager: Communication & Teamwork")
-    mgr_rating_dependability = fields.Float(string="Manager: Dependability & Accountability")
 
     mgr_overall_performance = fields.Float(
         string="Manager Overall Performance",
@@ -134,6 +110,12 @@ class HrAppraisal(models.Model):
         'hr.resume.line',
         string='Training Attendances',
         compute='_compute_training_attendance_ids',
+        compute_sudo=True,
+    )
+
+    employee_equipment_count = fields.Integer(
+        string='Equipment',
+        compute='_compute_employee_equipment_count',
         compute_sudo=True,
     )
 
@@ -160,6 +142,23 @@ class HrAppraisal(models.Model):
         for record in self:
             record.training_attendance_ids = record.employee_id.resume_line_ids.filtered('is_course')
 
+    @api.depends('employee_id', 'employee_id.equipment_ids', 'employee_id.equipment_ids.name')
+    def _compute_employee_equipment_count(self):
+        for record in self:
+            equipment = record.employee_id.sudo().equipment_ids
+            record.employee_equipment_count = len(equipment)
+
+    def action_open_employee_equipment(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Employee Equipment'),
+            'res_model': 'maintenance.equipment',
+            'view_mode': 'list,form',
+            'domain': [('employee_id', '=', self.employee_id.id)],
+            'context': {'default_employee_id': self.employee_id.id},
+        }
+
     @api.depends('training_attendance_ids')
     def _compute_total_trainings(self):
         for record in self:
@@ -173,7 +172,7 @@ class HrAppraisal(models.Model):
     def _generate_appraisal_pdf_attachment(self):
         """Render this appraisal as a PDF and attach it to the appraisal."""
         self.ensure_one()
-        report = self.env.ref('Appraisal_Payroll_Integration.action_report_hr_appraisal')
+        report = self._get_appraisal_pdf_report()
         pdf_content, _ = report._render_qweb_pdf(report, res_ids=[self.id])
         employee_name = (self.employee_id.name or 'Employee').replace(' ', '_')
         return self.env['ir.attachment'].create({
@@ -187,7 +186,33 @@ class HrAppraisal(models.Model):
 
     def action_print_appraisal_pdf(self):
         self.ensure_one()
-        return self.env.ref('Appraisal_Payroll_Integration.action_report_hr_appraisal').report_action(self)
+        return self._get_appraisal_pdf_report().report_action(self)
+
+    def _get_appraisal_pdf_report(self):
+        """Find this module's report IDs using the technical name active in this database."""
+        model_data = self.env['ir.model.data'].sudo()
+        module_name = __package__.split('.', 1)[0]
+        template_xmlid = model_data.search([
+            ('module', '=', module_name),
+            ('name', '=', 'report_appraisal_document'),
+            ('model', '=', 'ir.ui.view'),
+        ], limit=1)
+        if not template_xmlid:
+            raise ValueError("The appraisal PDF template is not installed.")
+
+        action_xmlid = model_data.search([
+            ('module', '=', template_xmlid.module),
+            ('name', '=', 'action_report_hr_appraisal'),
+            ('model', '=', 'ir.actions.report'),
+        ], limit=1)
+        if not action_xmlid:
+            raise ValueError("The appraisal PDF report action is not installed.")
+
+        report = self.env['ir.actions.report'].browse(action_xmlid.res_id)
+        report_name = f'{template_xmlid.module}.{template_xmlid.name}'
+        if report.report_name != report_name or report.report_file != report_name:
+            report.sudo().write({'report_name': report_name, 'report_file': report_name})
+        return report
 
     def _sync_suggested_training_goals(self):
         """Create or refresh employee Goals from training suggestions when finalized."""
@@ -286,68 +311,16 @@ class HrAppraisal(models.Model):
 
         return len(found_criteria), ratings
 
-    @api.constrains('self_rating_planning', 'self_rating_reporting', 'self_rating_delivery',
-                    'self_rating_problem_solving', 'self_rating_knowledge', 'self_rating_quality',
-                    'self_rating_attendance', 'self_rating_initiative', 'self_rating_communication',
-                    'self_rating_dependability', 'mgr_rating_planning', 'mgr_rating_reporting',
-                    'mgr_rating_delivery', 'mgr_rating_problem_solving', 'mgr_rating_knowledge',
-                    'mgr_rating_quality', 'mgr_rating_attendance', 'mgr_rating_initiative',
-                    'mgr_rating_communication', 'mgr_rating_dependability')
-    def _check_performance_ratings(self):
-        for record in self:
-            for field_name in self._performance_rating_fields():
-                rating = record[field_name]
-                if rating and not 1 <= rating <= 5:
-                    raise ValidationError(_("Performance ratings must be between 1 and 5."))
-
-    @api.model
-    def _performance_rating_fields(self):
-        return (
-            'self_rating_planning', 'self_rating_reporting', 'self_rating_delivery',
-            'self_rating_problem_solving', 'self_rating_knowledge', 'self_rating_quality',
-            'self_rating_attendance', 'self_rating_initiative', 'self_rating_communication',
-            'self_rating_dependability', 'mgr_rating_planning', 'mgr_rating_reporting',
-            'mgr_rating_delivery', 'mgr_rating_problem_solving', 'mgr_rating_knowledge',
-            'mgr_rating_quality', 'mgr_rating_attendance', 'mgr_rating_initiative',
-            'mgr_rating_communication', 'mgr_rating_dependability'
-        )
-
-    @api.depends('employee_feedback',
-                 'self_rating_planning', 'self_rating_reporting', 'self_rating_delivery',
-                 'self_rating_problem_solving', 'self_rating_knowledge', 'self_rating_quality',
-                 'self_rating_attendance', 'self_rating_initiative', 'self_rating_communication',
-                 'self_rating_dependability')
+    @api.depends('employee_feedback')
     def _compute_self_overall_performance(self):
         for rec in self:
-            recognized, ratings = self._extract_feedback_ratings(rec.employee_feedback)
-            if not recognized:
-                ratings = [
-                    r for r in [
-                        rec.self_rating_planning, rec.self_rating_reporting, rec.self_rating_delivery,
-                        rec.self_rating_problem_solving, rec.self_rating_knowledge, rec.self_rating_quality,
-                        rec.self_rating_attendance, rec.self_rating_initiative, rec.self_rating_communication,
-                        rec.self_rating_dependability
-                    ] if r > 0
-                ]
+            _, ratings = self._extract_feedback_ratings(rec.employee_feedback)
             rec.self_overall_performance = sum(ratings) / len(ratings) if ratings else 0.0
 
-    @api.depends('manager_feedback',
-                 'mgr_rating_planning', 'mgr_rating_reporting', 'mgr_rating_delivery',
-                 'mgr_rating_problem_solving', 'mgr_rating_knowledge', 'mgr_rating_quality',
-                 'mgr_rating_attendance', 'mgr_rating_initiative', 'mgr_rating_communication',
-                 'mgr_rating_dependability')
+    @api.depends('manager_feedback')
     def _compute_mgr_overall_performance(self):
         for rec in self:
-            recognized, ratings = self._extract_feedback_ratings(rec.manager_feedback)
-            if not recognized:
-                ratings = [
-                    r for r in [
-                        rec.mgr_rating_planning, rec.mgr_rating_reporting, rec.mgr_rating_delivery,
-                        rec.mgr_rating_problem_solving, rec.mgr_rating_knowledge, rec.mgr_rating_quality,
-                        rec.mgr_rating_attendance, rec.mgr_rating_initiative, rec.mgr_rating_communication,
-                        rec.mgr_rating_dependability
-                    ] if r > 0
-                ]
+            _, ratings = self._extract_feedback_ratings(rec.manager_feedback)
             rec.mgr_overall_performance = sum(ratings) / len(ratings) if ratings else 0.0
 
     @api.depends(

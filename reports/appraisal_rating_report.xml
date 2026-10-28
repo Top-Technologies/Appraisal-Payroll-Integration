@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="report_appraisal_document_with_ratings"
-              inherit_id="Appraisal_Payroll_Integration.report_appraisal_document">
+              inherit_id="report_appraisal_document">
         <!-- Append only the calculated average; the original pasted document stays unchanged. -->
         <xpath expr="//div[t[@t-elif='o.employee_feedback']]" position="inside">
             <div style="margin-top: 12px; padding: 8px 10px; background-color: #eaf2f8; font-size: 12px; page-break-inside: avoid;">

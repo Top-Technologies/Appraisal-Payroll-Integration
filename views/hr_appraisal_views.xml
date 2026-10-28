@@ -10,6 +10,15 @@
                 <button name="action_print_appraisal_pdf" string="Print PDF" type="object"/>
             </xpath>
 
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button class="oe_stat_button" name="action_open_employee_equipment" icon="fa-laptop" type="object" invisible="not employee_id">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value"><field name="employee_equipment_count"/></span>
+                        <span class="o_stat_text">Equipment</span>
+                    </div>
+                </button>
+            </xpath>
+
             <xpath expr="//div[contains(@class, 'o_appraisal_both_feedback')]" position="before">
                 <group col="2" class="mb-2">
                     <field name="self_overall_performance" string="Average Self Rating (/ 5)" readonly="1"/>
